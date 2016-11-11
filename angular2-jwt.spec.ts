@@ -18,10 +18,8 @@ describe('AuthConfig', ()=> {
         expect(config.noJwtError).toBe(false);
         expect(config.noTokenScheme).toBe(false);
         expect(config.globalHeaders).toEqual([]);
-        expect(config.tokenGetter).toBeDefined();
         const token = "Token";
         localStorage.setItem(config.tokenName, token);
-        expect(config.tokenGetter()).toBe(token);
     });
 
     it('should have default values', ()=> {
@@ -29,7 +27,6 @@ describe('AuthConfig', ()=> {
             headerName: "Foo",
             headerPrefix: "Bar",
             tokenName: "token",
-            tokenGetter: ()=>"this is a token",
             noJwtError: true,
             globalHeaders: [{"header": "value"}, {"header2": "value2"}],
             noTokenScheme: true
@@ -41,9 +38,7 @@ describe('AuthConfig', ()=> {
         expect(config.tokenName).toBe(configExpected.tokenName);
         expect(config.noJwtError).toBe(configExpected.noJwtError);
         expect(config.noTokenScheme).toBe(configExpected.noTokenScheme);
-        expect(config.globalHeaders).toEqual(configExpected.globalHeaders);
-        expect(config.tokenGetter).toBeDefined();
-        expect(config.tokenGetter()).toBe("this is a token");
+        expect(config.globalHeaders).toEqual(configExpected.globalHeaders);;
     });
 
 });
@@ -115,11 +110,11 @@ describe('JwtHelper', ()=> {
 describe('tokenNotExpired', ()=> {
     'use strict';
     it('should use the passed token when not expired', ()=> {
-        const actual:boolean=tokenNotExpired(null,validToken);
+        const actual:boolean=tokenNotExpired(null,null,validToken);
         expect(actual).toBe(true);
     });
     it('should use the passed token when expired', ()=> {
-        const actual:boolean=tokenNotExpired(null,expiredToken);
+        const actual:boolean=tokenNotExpired(null,null,expiredToken);
         expect(actual).toBe(false);
     });
     it('should use the passed tokenName when not expired', ()=> {
@@ -147,29 +142,29 @@ describe('tokenNotExpired', ()=> {
 
 describe("AuthHttp", () => {
     describe("request", () => {
-        it("handles tokenGetters returning string", () => {
-            let authHttp: AuthHttp = new AuthHttp(new AuthConfig({
-                tokenGetter: () => validToken
-            }), null);
+        //it("handles tokenGetters returning string", () => {
+        //    let authHttp: AuthHttp = new AuthHttp(new AuthConfig({
+        //        tokenGetter: () => validToken
+        //    }), null);
 
-            spyOn(authHttp, "requestWithToken").and.stub();
+        //    spyOn(authHttp, "requestWithToken").and.stub();
 
-            authHttp.request(null);
+        //    authHttp.request(null);
 
-            expect(authHttp["requestWithToken"]).toHaveBeenCalledWith(null, validToken);
-        });
+        //    expect(authHttp["requestWithToken"]).toHaveBeenCalledWith(null, validToken);
+        //});
 
-        it("handles tokenGetters returning Promise\<string\>", (done: Function) => {
-            let authHttp: AuthHttp = new AuthHttp(new AuthConfig({
-                tokenGetter: () => Promise.resolve(validToken)
-            }), null);
+        //it("handles tokenGetters returning Promise\<string\>", (done: Function) => {
+        //    let authHttp: AuthHttp = new AuthHttp(new AuthConfig({
+        //        tokenGetter: () => Promise.resolve(validToken)
+        //    }), null);
 
-            spyOn(authHttp, "requestWithToken").and.returnValue(Observable.of(""));
+        //    spyOn(authHttp, "requestWithToken").and.returnValue(Observable.of(""));
 
-            authHttp.request(null).subscribe(() => {
-                expect(authHttp["requestWithToken"]).toHaveBeenCalledWith(null, validToken);
-                done();
-            });
-        });
+        //    authHttp.request(null).subscribe(() => {
+        //        expect(authHttp["requestWithToken"]).toHaveBeenCalledWith(null, validToken);
+        //        done();
+        //    });
+        //});
     });
 });

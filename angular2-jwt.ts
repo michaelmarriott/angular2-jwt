@@ -10,7 +10,6 @@ export interface IAuthConfig {
   headerPrefix: string;
   noJwtError: boolean;
   noTokenScheme?: boolean;
-  tokenGetter: () => string | Promise<string>;
   tokenName: string;
 }
 
@@ -18,10 +17,13 @@ export interface IAuthConfigOptional {
     headerName?: string;
     headerPrefix?: string;
     tokenName?: string;
-    tokenGetter?: () => string | Promise<string>;
     noJwtError?: boolean;
     globalHeaders?: Array<Object>;
     noTokenScheme?: boolean;
+}
+
+export interface ILocalStorage {
+  getItem(itemName: string): any;
 }
 
 export class AuthConfigConsts {
@@ -34,7 +36,6 @@ const AuthConfigDefaults: IAuthConfig = {
     headerName: AuthConfigConsts.DEFAULT_HEADER_NAME,
     headerPrefix: null,
     tokenName: AuthConfigConsts.DEFAULT_TOKEN_NAME,
-    tokenGetter: () => localStorage.getItem(AuthConfigDefaults.tokenName) as string,
     noJwtError: false,
     globalHeaders: [],
     noTokenScheme: false
@@ -79,11 +80,11 @@ export class AuthHttp {
   private config: IAuthConfig;
   public tokenStream: Observable<string>;
 
-  constructor(options: AuthConfig, private http: Http, private defOpts?: RequestOptions) {
+  constructor(options: AuthConfig, private http: Http, private storage: ILocalStorage = localStorage, private defOpts?: RequestOptions) {
     this.config = options.getConfig();
 
     this.tokenStream = new Observable<string>((obs: any) => {
-      obs.next(this.config.tokenGetter());
+      obs.next(this.storage.getItem(AuthConfigDefaults.tokenName));
     });
   }
 
@@ -107,7 +108,7 @@ export class AuthHttp {
   }
 
   private requestWithToken(req: Request, token: string): Observable<Response> {
-    if (!tokenNotExpired(undefined, token)) {
+    if (!tokenNotExpired(undefined, this.storage, token)) {
       if (!this.config.noJwtError) {
         return new Observable<Response>((obs: any) => {
           obs.error(new AuthHttpError('No JWT present or has expired'));
@@ -141,7 +142,7 @@ export class AuthHttp {
 
     // from this point url is always an instance of Request;
     let req: Request = url as Request;
-    let token: string | Promise<string> = this.config.tokenGetter();
+    let token: string | Promise<string> = this.storage.getItem(AuthConfigDefaults.tokenName);
     if (token instanceof Promise) {
       return Observable.fromPromise(token).mergeMap((jwtToken: string) => this.requestWithToken(req, jwtToken));
     } else {
@@ -251,9 +252,9 @@ export class JwtHelper {
  * Checks for presence of token and that token hasn't expired.
  * For use with the @CanActivate router decorator and NgIf
  */
-export function tokenNotExpired(tokenName = AuthConfigConsts.DEFAULT_TOKEN_NAME, jwt?:string): boolean {
+export function tokenNotExpired(tokenName = AuthConfigConsts.DEFAULT_TOKEN_NAME, storage: ILocalStorage = localStorage, jwt?: string): boolean {
 
-  const token: string = jwt || localStorage.getItem(tokenName);
+  const token: string = jwt || storage.getItem(tokenName);
 
   const jwtHelper = new JwtHelper();
 
@@ -265,7 +266,7 @@ export const AUTH_PROVIDERS: Provider[] = [
     provide: AuthHttp,
     deps: [Http, RequestOptions],
     useFactory: (http: Http, options: RequestOptions) => {
-      return new AuthHttp(new AuthConfig(), http, options);
+      return new AuthHttp(new AuthConfig(), http, null,options);
     }
   }
 ];
@@ -276,7 +277,7 @@ export function provideAuth(config?: IAuthConfigOptional): Provider[] {
       provide: AuthHttp,
       deps: [Http, RequestOptions],
       useFactory: (http: Http, options: RequestOptions) => {
-        return new AuthHttp(new AuthConfig(config), http, options);
+        return new AuthHttp(new AuthConfig(config), http, null, options);
       }
     }
   ];
