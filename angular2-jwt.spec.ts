@@ -1,4 +1,4 @@
-﻿import "core-js";
+import "core-js";
 import { AuthConfig, AuthHttp, tokenNotExpired, JwtHelper } from "./angular2-jwt";
 import {Observable} from "rxjs";
 
