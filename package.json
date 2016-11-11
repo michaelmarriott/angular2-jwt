@@ -1,5 +1,5 @@
 {
-  "name": "angular2-jwt",
+  "name": "angular2-jwt-ilocalstorage",
   "version": "0.1.25",
   "description": "Helper library for handling JWTs in Angular 2",
   "repository": {
