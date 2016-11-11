@@ -1,4 +1,7 @@
 # angular2-jwt
+
+This is a fork at https://github.com/michaelmarriott/angular2-jwt
+
 [![Build Status](https://travis-ci.org/auth0/angular2-jwt.svg?branch=master)](https://travis-ci.org/auth0/angular2-jwt)
 [![npm version](https://img.shields.io/npm/v/angular2-jwt.svg)](https://www.npmjs.com/package/angular2-jwt) [![license](https://img.shields.io/npm/l/angular2-jwt.svg)](https://www.npmjs.com/package/angular2-jwt)
 
